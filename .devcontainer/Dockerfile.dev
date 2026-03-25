@@ -1,0 +1,9 @@
+FROM golang:tip-trixie
+USER root
+
+RUN apt-get update -yqq \
+    && apt-get install -yqq --no-install-recommends zsh openssh-client vim \
+    && sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" \
+    && go install golang.org/x/tools/gopls@latest \
+    && go install golang.org/x/tools/cmd/goimports@latest \
+    && go install github.com/golang-migrate/migrate/v4/cmd/migrate@latest
