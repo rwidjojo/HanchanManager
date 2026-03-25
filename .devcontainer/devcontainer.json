@@ -3,6 +3,9 @@
     "build": {
         "dockerfile": "Dockerfile.dev"
     },
+    "mounts": [
+        "source=${localEnv:HOME}/.ssh,target=/root/.ssh,type=bind" // Mount if git authentication is through SSH keys
+    ],
     "customizations" : {
         "vscode": {
             "extensions": [
