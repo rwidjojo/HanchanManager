@@ -1,8 +1,6 @@
 {
     "name": "go-devcontainer",
-    "build": {
-        "dockerfile": "Dockerfile.dev"
-    },
+    "image": "golang-dev:latest",
     "mounts": [
         "source=${localEnv:HOME}/.ssh,target=/root/.ssh,type=bind" // Mount if git authentication is through SSH keys
     ],
@@ -12,7 +10,8 @@
                 "golang.go",
                 "mtxr.sqltools",
                 "mtxr.sqltools-driver-pg",
-                "ms-azuretools.vscode-containers"
+                "ms-azuretools.vscode-containers",
+                "ms-vscode.makefile-tools"
             ]
         },
         "settings": {
