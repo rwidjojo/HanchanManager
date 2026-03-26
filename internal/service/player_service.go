@@ -33,3 +33,27 @@ func (s *PlayerService) CreatePlayer(ctx context.Context, username string, name 
 
 	return player, nil
 }
+
+func (s *PlayerService) ListPlayers(ctx context.Context) ([]*domain.Player, error) {
+
+	var players []*domain.Player
+
+	players, err := s.repo.List(ctx)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return players, nil
+}
+
+func (s *PlayerService) GetPlayerByPlayerID(ctx context.Context, username string) (*domain.Player, error) {
+
+	player, err := s.repo.GetByUsername(ctx, username)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return player, nil
+}

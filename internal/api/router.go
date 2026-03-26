@@ -36,6 +36,8 @@ func NewRouter(db *pgxpool.Pool) http.Handler {
 	// Players (global — players exist across groups)
 	r.Route("/players", func(r chi.Router) {
 		r.Post("/", playerHandler.Create)
+		r.Get("/", playerHandler.List)
+		r.Get("/{username}", playerHandler.GetByID)
 
 	})
 
