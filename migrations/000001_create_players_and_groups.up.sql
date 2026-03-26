@@ -2,14 +2,14 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 CREATE TABLE players (
     id         INTEGER     PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    username   TEXT        UNIQUE,
+    username   TEXT        UNIQUE NOT NULL,
     name       TEXT        NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE groups (
     id          INTEGER     PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    name        TEXT        NOT NULL,
+    code        TEXT        UNIQUE NOT NULL,
     description TEXT,
     created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
