@@ -23,9 +23,15 @@ func NewRouter(db *pgxpool.Pool) http.Handler {
 	// ToDo: if we want to use a repository/db.go then we need to change the code like this
 	// playerRepo := repository.NewPlayerRepo(db.Pool())
 
+	// Players
 	playerRepo := repository.NewPlayerRepo(db)
 	playerSvc := service.NewPlayerService(playerRepo)
 	playerHandler := handler.NewPlayerHandler(playerSvc)
+
+	// Groups
+	groupRepo := repository.NewGroupRepo(db)
+	groupSvc := service.NewGroupService(groupRepo)
+	groupHandler := handler.NewGroupHandler(groupSvc)
 
 	// Health check
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
@@ -38,7 +44,11 @@ func NewRouter(db *pgxpool.Pool) http.Handler {
 		r.Post("/", playerHandler.Create)
 		r.Get("/", playerHandler.List)
 		r.Get("/{username}", playerHandler.GetByID)
+	})
 
+	r.Route("/groups", func(r chi.Router) {
+		r.Post("/", groupHandler.Create)
+		r.Get("/{code}", groupHandler.GetByCode)
 	})
 
 	return r
