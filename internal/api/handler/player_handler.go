@@ -2,7 +2,9 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/rwidjojo/HanchanManager/internal/service"
@@ -50,9 +52,14 @@ func (h *PlayerHandler) List(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *PlayerHandler) GetByID(w http.ResponseWriter, r *http.Request) {
-	username := chi.URLParam(r, "username")
+	id, err := strconv.Atoi(chi.URLParam(r, "id"))
 
-	player, err := h.svc.GetPlayerByPlayerID(r.Context(), username)
+	if err != nil {
+		fmt.Printf("Error during conversion: %v\n", err)
+		return
+	}
+
+	player, err := h.svc.GetPlayerByID(r.Context(), id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return

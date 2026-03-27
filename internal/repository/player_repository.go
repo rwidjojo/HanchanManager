@@ -10,7 +10,7 @@ import (
 
 type PlayerRepository interface {
 	Create(ctx context.Context, player *domain.Player) error
-	GetByUsername(ctx context.Context, username string) (*domain.Player, error)
+	GetByID(ctx context.Context, id int) (*domain.Player, error)
 	List(ctx context.Context) ([]*domain.Player, error)
 }
 
@@ -27,12 +27,12 @@ func (r *playerRepo) Create(ctx context.Context, player *domain.Player) error {
 	return r.db.QueryRow(ctx, query, player.Username, player.Name).Scan(&player.ID)
 }
 
-func (r *playerRepo) GetByUsername(ctx context.Context, username string) (*domain.Player, error) {
+func (r *playerRepo) GetByID(ctx context.Context, id int) (*domain.Player, error) {
 	p := &domain.Player{}
 
 	err := r.db.QueryRow(ctx,
-		`SELECT id, username, name, created_at FROM players WHERE username = $1`,
-		username,
+		`SELECT id, username, name, created_at FROM players WHERE id = $1`,
+		id,
 	).Scan(&p.ID, &p.Username, &p.Name, &p.CreatedAt)
 
 	if err != nil {

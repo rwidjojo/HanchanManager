@@ -10,7 +10,7 @@ import (
 
 type GroupRepository interface {
 	Create(ctx context.Context, group *domain.Group) error
-	GetByCode(ctx context.Context, code string) (*domain.Group, error)
+	GetByID(ctx context.Context, id int) (*domain.Group, error)
 }
 
 type groupRepo struct {
@@ -26,16 +26,16 @@ func (r *groupRepo) Create(ctx context.Context, group *domain.Group) error {
 	return r.db.QueryRow(ctx, query, group.Code, group.Description).Scan(&group.ID)
 }
 
-func (r *groupRepo) GetByCode(ctx context.Context, code string) (*domain.Group, error) {
+func (r *groupRepo) GetByID(ctx context.Context, id int) (*domain.Group, error) {
 	g := &domain.Group{}
 
 	err := r.db.QueryRow(ctx,
-		`SELECT id, code, description, created_at FROM players WHERE code = $1`,
-		code,
+		`SELECT id, code, description, created_at FROM groups WHERE id = $1`,
+		id,
 	).Scan(&g.ID, &g.Code, &g.Description, &g.CreatedAt)
 
 	if err != nil {
-		return nil, fmt.Errorf("GetGroupByCode: %w", err)
+		return nil, fmt.Errorf("GetGroupByID: %w", err)
 	}
 
 	return g, nil

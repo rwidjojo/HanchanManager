@@ -47,9 +47,9 @@ func (s *PlayerService) ListPlayers(ctx context.Context) ([]*domain.Player, erro
 	return players, nil
 }
 
-func (s *PlayerService) GetPlayerByPlayerID(ctx context.Context, username string) (*domain.Player, error) {
+func (s *PlayerService) GetPlayerByID(ctx context.Context, id int) (*domain.Player, error) {
 
-	player, err := s.repo.GetByUsername(ctx, username)
+	player, err := s.repo.GetByID(ctx, id)
 
 	if err != nil {
 		return nil, err
