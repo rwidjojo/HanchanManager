@@ -30,7 +30,8 @@ func NewRouter(db *pgxpool.Pool) http.Handler {
 
 	// Groups
 	groupRepo := repository.NewGroupRepo(db)
-	groupSvc := service.NewGroupService(groupRepo)
+	membershipRepo := repository.NewMembershipRepo(db)
+	groupSvc := service.NewGroupService(groupRepo, membershipRepo)
 	groupHandler := handler.NewGroupHandler(groupSvc)
 
 	// Health check
@@ -43,12 +44,14 @@ func NewRouter(db *pgxpool.Pool) http.Handler {
 	r.Route("/players", func(r chi.Router) {
 		r.Post("/", playerHandler.Create)
 		r.Get("/", playerHandler.List)
-		r.Get("/{username}", playerHandler.GetByID)
+		r.Get("/{id}", playerHandler.GetByID)
 	})
 
 	r.Route("/groups", func(r chi.Router) {
 		r.Post("/", groupHandler.Create)
-		r.Get("/{code}", groupHandler.GetByCode)
+		r.Get("/{id}", groupHandler.GetByID)
+		r.Post("/{groupID}/players", groupHandler.AddPlayer)
+		r.Get("/{groupID}/players", groupHandler.GetPlayers)
 	})
 
 	return r

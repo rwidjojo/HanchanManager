@@ -9,11 +9,12 @@ import (
 )
 
 type GroupService struct {
-	repo repository.GroupRepository
+	groupRepo      repository.GroupRepository
+	membershipRepo repository.MembershipRepository
 }
 
-func NewGroupService(repo repository.GroupRepository) *GroupService {
-	return &GroupService{repo: repo}
+func NewGroupService(groupRepo repository.GroupRepository, membershipRepo repository.MembershipRepository) *GroupService {
+	return &GroupService{groupRepo: groupRepo, membershipRepo: membershipRepo}
 }
 
 func (s *GroupService) CreateGroup(ctx context.Context, code string, description *string) (*domain.Group, error) {
@@ -23,20 +24,28 @@ func (s *GroupService) CreateGroup(ctx context.Context, code string, description
 
 	group := &domain.Group{Code: code, Description: description}
 
-	if err := s.repo.Create(ctx, group); err != nil {
+	if err := s.groupRepo.Create(ctx, group); err != nil {
 		return nil, err
 	}
 
 	return group, nil
 }
 
-func (s *GroupService) GetGroupByCode(ctx context.Context, code string) (*domain.Group, error) {
+func (s *GroupService) GetGroupByID(ctx context.Context, id int) (*domain.Group, error) {
 
-	group, err := s.repo.GetByCode(ctx, code)
+	group, err := s.groupRepo.GetByID(ctx, id)
 
 	if err != nil {
 		return nil, err
 	}
 
 	return group, nil
+}
+
+func (s *GroupService) AddPlayer(ctx context.Context, groupID int, playerID int) error {
+	return s.membershipRepo.AddPlayer(ctx, groupID, playerID)
+}
+
+func (s *GroupService) GetPlayers(ctx context.Context, groupID int) ([]*domain.Player, error) {
+	return s.membershipRepo.GetPlayers(ctx, groupID)
 }
