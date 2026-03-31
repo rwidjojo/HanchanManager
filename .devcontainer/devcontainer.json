@@ -1,10 +1,14 @@
 {
     "name": "go-devcontainer",
     "image": "golang-dev:latest",
+    "containerUser": "root",
+    "containerEnv": {
+        "SHELL": "/usr/bin/zsh"
+    },
     "mounts": [
         "source=${localEnv:HOME}/.ssh,target=/root/.ssh,type=bind" // Mount if git authentication is through SSH keys
     ],
-    "customizations" : {
+    "customizations": {
         "vscode": {
             "extensions": [
                 "golang.go",
@@ -17,9 +21,7 @@
         "settings": {
             "go.useLanguageServer": true,
             "go.lintTool": "golangci-lint",
-            "go.formatTool": "goimports",
-            "terminal.integrated.defaultProfile.linux": "zsh",
-            "terminal.integrated.profiles.linux": { "zsh": { "path": "/usr/bin/zsh" } }
+            "go.formatTool": "goimports"
         }
     },
     "postCreateCommand": "go version"
