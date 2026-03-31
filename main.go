@@ -27,9 +27,6 @@ func main() {
 	defer pool.Close()
 	slog.Info("connected to database")
 
-	// ToDo: if we want to use a repository/db.go then we need to change the code like this
-	// db := repository.NewDB(pool)
-	// router := api.NewRouter(db)
 	router := api.NewRouter(pool)
 
 	srv := &http.Server{
