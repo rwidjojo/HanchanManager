@@ -1,5 +1,3 @@
-CREATE EXTENSION IF NOT EXISTS "pgcrypto";
-
 CREATE TABLE players (
     id         INTEGER     PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     username   TEXT        UNIQUE NOT NULL,
