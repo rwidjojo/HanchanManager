@@ -15,7 +15,6 @@ CREATE TABLE groups (
 CREATE TABLE group_members (
     group_id  INTEGER     NOT NULL REFERENCES groups(id)  ON DELETE CASCADE,
     player_id INTEGER     NOT NULL REFERENCES players(id) ON DELETE CASCADE,
-    role      TEXT        NOT NULL CHECK (role IN ('OWNER', 'ADMIN', 'MEMBER')),
     joined_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     PRIMARY KEY (group_id, player_id)
 );

@@ -22,7 +22,7 @@ func NewMembershipRepo(db *pgxpool.Pool) MembershipRepository {
 }
 
 func (r *membershipRepo) AddPlayer(ctx context.Context, groupID int, playerID int) error {
-	query := `INSERT INTO group_members (group_id, player_id, role) VALUES ($1, $2, 'MEMBER')`
+	query := `INSERT INTO group_members (group_id, player_id) VALUES ($1, $2)`
 	_, err := r.db.Exec(ctx, query, groupID, playerID)
 	return err
 }
