@@ -11,17 +11,11 @@ import (
 	"github.com/rwidjojo/HanchanManager/internal/service"
 )
 
-// ToDo: if we want to use a repository/db.go then we need to change the code like this
-// func NewRouter(db *repository.DB) http.Handler {
 func NewRouter(db *pgxpool.Pool) http.Handler {
 	r := chi.NewRouter()
 
 	// Global middleware
 	r.Use(chimw.StripSlashes)
-
-	// Handlers
-	// ToDo: if we want to use a repository/db.go then we need to change the code like this
-	// playerRepo := repository.NewPlayerRepo(db.Pool())
 
 	// Players
 	playerRepo := repository.NewPlayerRepo(db)
