@@ -6,8 +6,9 @@ import (
 	"net/http"
 	"strconv"
 
+	"HanchanManager/internal/service"
+
 	"github.com/go-chi/chi/v5"
-	"github.com/rwidjojo/HanchanManager/internal/service"
 )
 
 type GroupHandler struct {

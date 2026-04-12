@@ -4,8 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	"HanchanManager/internal/domain"
+
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/rwidjojo/HanchanManager/internal/domain"
 )
 
 type MembershipRepository interface {

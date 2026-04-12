@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 
-	"github.com/rwidjojo/HanchanManager/internal/domain"
-	"github.com/rwidjojo/HanchanManager/internal/repository"
+	"HanchanManager/internal/domain"
+	"HanchanManager/internal/repository"
 )
 
 type GroupService struct {

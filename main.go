@@ -7,8 +7,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/rwidjojo/HanchanManager/internal/api"
-	"github.com/rwidjojo/HanchanManager/internal/repository"
+	"HanchanManager/internal/api"
+	"HanchanManager/internal/repository"
 )
 
 func main() {
