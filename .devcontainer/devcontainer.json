@@ -1,6 +1,6 @@
 {
-    "name": "go-devcontainer",
-    "image": "golang-dev:latest",
+    "name": "golang-development",
+    "image": "golang:devcontainer",
     "containerUser": "root",
     "containerEnv": {
         "SHELL": "/usr/bin/zsh"
