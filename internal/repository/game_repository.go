@@ -20,6 +20,6 @@ type gameRepo struct {
 	db *pgxpool.Pool
 }
 
-func NewGameRepo(db *pgxpool.Pool) GameRepository {
-	return &gameRepo{db: db}
-}
+// func NewGameRepo(db *pgxpool.Pool) GameRepository {
+// 	return &gameRepo{db: db}
+// }

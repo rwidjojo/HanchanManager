@@ -21,13 +21,13 @@ const (
 )
 
 type Hanchan struct {
-	ID        int           `json:"id"`
-	GroupID   int           `json:"group_id"`
-	Name      *string       `json:"name,omitempty"`
-	Date      time.Time     `json:"date"`
-	Status    HanchanStatus `json:"status"`
-	Uma       [4]int        `json:"uma"` // [1st, 2nd, 3rd, 4th] point adjustments
-	CreatedAt time.Time     `json:"created_at"`
+	ID        int            `json:"id"`
+	GroupID   int            `json:"group_id"`
+	Name      *string        `json:"name,omitempty"`
+	Date      time.Time      `json:"date"`
+	Status    *HanchanStatus `json:"status"`
+	Uma       []int          `json:"uma"` // [1st, 2nd, 3rd, 4th] point adjustments
+	CreatedAt time.Time      `json:"created_at"`
 }
 
 type HanchanPlayer struct {

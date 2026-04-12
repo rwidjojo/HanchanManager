@@ -29,6 +29,11 @@ func NewRouter(db *pgxpool.Pool) http.Handler {
 	groupSvc := service.NewGroupService(groupRepo, membershipRepo)
 	groupHandler := handler.NewGroupHandler(groupSvc)
 
+	// Hanchan
+	hanchanRepo := repository.NewHanchanRepo(db)
+	hanchanSvc := service.NewHanchanService(hanchanRepo)
+	hanchanHandler := handler.NewHanchanHandler(hanchanSvc)
+
 	// Health check
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
@@ -45,8 +50,17 @@ func NewRouter(db *pgxpool.Pool) http.Handler {
 	r.Route("/groups", func(r chi.Router) {
 		r.Post("/", groupHandler.Create)
 		r.Get("/{id}", groupHandler.GetByID)
-		r.Post("/{groupID}/players", groupHandler.AddPlayer)
-		r.Get("/{groupID}/players", groupHandler.GetPlayers)
+		r.Post("/{id}/players", groupHandler.AddPlayer)
+		r.Get("/{id}/players", groupHandler.GetPlayers)
+	})
+
+	// Hanchans (nested under group for creation, standalone for game ops)
+	r.Route("/groups/{groupID}/hanchans", func(r chi.Router) {
+		r.Post("/", hanchanHandler.Create)
+	})
+
+	r.Route("/hanchans", func(r chi.Router) {
+		r.Get("/{id}", hanchanHandler.GetByID)
 	})
 
 	return r

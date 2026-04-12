@@ -12,10 +12,10 @@ import (
 type HanchanRepository interface {
 	Create(ctx context.Context, hanchan *domain.Hanchan) error
 	GetByID(ctx context.Context, id int) (*domain.Hanchan, error)
-	ListByGroup(ctx context.Context, groupID int) ([]*domain.Hanchan, error)
-	AddPlayer(ctx context.Context, hp *domain.HanchanPlayer) error
-	ListPlayers(ctx context.Context, hanchanID int) ([]*domain.HanchanPlayer, error)
-	Close(ctx context.Context, hanchanID int) error
+	// ListByGroup(ctx context.Context, groupID int) ([]*domain.Hanchan, error)
+	// AddPlayer(ctx context.Context, hp *domain.HanchanPlayer) error
+	// ListPlayers(ctx context.Context, hanchanID int) ([]*domain.HanchanPlayer, error)
+	// Close(ctx context.Context, hanchanID int, results []domain.HanchanPlayer) error
 }
 
 type hanchanRepo struct {
