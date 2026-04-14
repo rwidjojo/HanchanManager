@@ -36,6 +36,8 @@ func (s *HanchanService) CreateHanchan(ctx context.Context, groupID int, name *s
 
 	if baseScore == nil {
 		hanchanBaseScore = 30000
+	} else {
+		hanchanBaseScore = *baseScore
 	}
 
 	hanchan := &domain.Hanchan{GroupID: groupID, Name: name, Date: date, Uma: hanchanUma, BaseScore: hanchanBaseScore}
