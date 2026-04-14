@@ -28,7 +28,6 @@ type createHanchanRequest struct {
 
 func (h *HanchanHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var req createHanchanRequest
-	var uma []int
 
 	groupID, err := strconv.Atoi(chi.URLParam(r, "groupID"))
 	if err != nil {
@@ -41,22 +40,7 @@ func (h *HanchanHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.Date.IsZero() {
-		req.Date = time.Now()
-	}
-
-	if req.Uma == nil {
-		uma = []int{15000, 5000, -5000, -15000}
-	} else {
-		uma = *req.Uma
-	}
-
-	if len(uma) != 4 {
-		http.Error(w, fmt.Sprintf("Uma must have exactly 4 values, got: %v", uma), http.StatusBadRequest)
-		return
-	}
-
-	hanchan, err := h.svc.CreateHanchan(r.Context(), groupID, req.Name, req.Date, uma)
+	hanchan, err := h.svc.CreateHanchan(r.Context(), groupID, req.Name, req.Date, req.Uma)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return

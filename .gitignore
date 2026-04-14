@@ -33,3 +33,4 @@ go.work.sum
 
 HanchanManager
 script.sh
+internal/scoring/
