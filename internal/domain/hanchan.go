@@ -25,7 +25,8 @@ type Hanchan struct {
 	GroupID   int            `json:"group_id"`
 	Name      *string        `json:"name,omitempty"`
 	Date      time.Time      `json:"date"`
-	Status    *HanchanStatus `json:"status"`
+	Status    *HanchanStatus `json:"status,omitempty"`
+	BaseScore int            `json:"base_score,omitempty"`
 	Uma       []int          `json:"uma"` // [1st, 2nd, 3rd, 4th] point adjustments
 	CreatedAt time.Time      `json:"created_at"`
 }

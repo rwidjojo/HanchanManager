@@ -4,6 +4,7 @@ CREATE TABLE hanchans (
     name       TEXT,
     date       DATE        NOT NULL,
     status     TEXT        NOT NULL DEFAULT 'OPEN' CHECK (status IN ('OPEN', 'CLOSED')),
+    base_score INTEGER     NOT NULL DEFAULT 30000,
     uma        INT[]       NOT NULL DEFAULT '{15000,5000,-5000,-15000}',
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

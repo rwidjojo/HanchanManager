@@ -21,9 +21,10 @@ func NewHanchanHandler(svc *service.HanchanService) *HanchanHandler {
 }
 
 type createHanchanRequest struct {
-	Name *string   `json:"name,omitempty"`
-	Date time.Time `json:"date"`
-	Uma  *[]int    `json:"uma,omitempty"`
+	Name      *string   `json:"name,omitempty"`
+	Date      time.Time `json:"date"`
+	BaseScore *int      `json:"base_score,omitempty"`
+	Uma       *[]int    `json:"uma,omitempty"`
 }
 
 func (h *HanchanHandler) Create(w http.ResponseWriter, r *http.Request) {
@@ -40,7 +41,7 @@ func (h *HanchanHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hanchan, err := h.svc.CreateHanchan(r.Context(), groupID, req.Name, req.Date, req.Uma)
+	hanchan, err := h.svc.CreateHanchan(r.Context(), groupID, req.Name, req.Date, req.Uma, req.BaseScore)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return

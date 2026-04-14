@@ -17,9 +17,10 @@ func NewHanchanService(repo repository.HanchanRepository) *HanchanService {
 	return &HanchanService{hanchanRepo: repo}
 }
 
-func (s *HanchanService) CreateHanchan(ctx context.Context, group_id int, name *string, date time.Time, uma *[]int) (*domain.Hanchan, error) {
+func (s *HanchanService) CreateHanchan(ctx context.Context, group_id int, name *string, date time.Time, uma *[]int, base_score *int) (*domain.Hanchan, error) {
 
 	var hanchan_uma []int
+	var hanchan_base_score int
 
 	if date.IsZero() {
 		date = time.Now()
@@ -33,7 +34,11 @@ func (s *HanchanService) CreateHanchan(ctx context.Context, group_id int, name *
 		hanchan_uma = *uma
 	}
 
-	hanchan := &domain.Hanchan{GroupID: group_id, Name: name, Date: date, Uma: hanchan_uma}
+	if base_score == nil {
+		hanchan_base_score = 30000
+	}
+
+	hanchan := &domain.Hanchan{GroupID: group_id, Name: name, Date: date, Uma: hanchan_uma, BaseScore: hanchan_base_score}
 
 	if err := s.hanchanRepo.Create(ctx, hanchan); err != nil {
 		return nil, err
