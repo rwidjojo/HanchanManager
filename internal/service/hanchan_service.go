@@ -17,28 +17,28 @@ func NewHanchanService(repo repository.HanchanRepository) *HanchanService {
 	return &HanchanService{hanchanRepo: repo}
 }
 
-func (s *HanchanService) CreateHanchan(ctx context.Context, group_id int, name *string, date time.Time, uma *[]int, base_score *int) (*domain.Hanchan, error) {
+func (s *HanchanService) CreateHanchan(ctx context.Context, groupID int, name *string, date time.Time, uma *[]int, baseScore *int) (*domain.Hanchan, error) {
 
-	var hanchan_uma []int
-	var hanchan_base_score int
+	var hanchanUma []int
+	var hanchanBaseScore int
 
 	if date.IsZero() {
 		date = time.Now()
 	}
 
 	if uma == nil {
-		hanchan_uma = []int{15000, 5000, -5000, -15000}
+		hanchanUma = []int{15000, 5000, -5000, -15000}
 	} else if len(*uma) != 4 {
 		return nil, fmt.Errorf("Uma must have exactly 4 values, got %v", uma)
 	} else {
-		hanchan_uma = *uma
+		hanchanUma = *uma
 	}
 
-	if base_score == nil {
-		hanchan_base_score = 30000
+	if baseScore == nil {
+		hanchanBaseScore = 30000
 	}
 
-	hanchan := &domain.Hanchan{GroupID: group_id, Name: name, Date: date, Uma: hanchan_uma, BaseScore: hanchan_base_score}
+	hanchan := &domain.Hanchan{GroupID: groupID, Name: name, Date: date, Uma: hanchanUma, BaseScore: hanchanBaseScore}
 
 	if err := s.hanchanRepo.Create(ctx, hanchan); err != nil {
 		return nil, err
