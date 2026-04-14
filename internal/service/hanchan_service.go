@@ -49,7 +49,7 @@ func (s *HanchanService) CreateHanchan(ctx context.Context, groupID int, name *s
 	return hanchan, nil
 }
 
-func (s *HanchanService) GetByID(ctx context.Context, id int) (*domain.Hanchan, error) {
+func (s *HanchanService) GetHanchanByID(ctx context.Context, id int) (*domain.Hanchan, error) {
 
 	hanchan, err := s.hanchanRepo.GetByID(ctx, id)
 
@@ -58,4 +58,25 @@ func (s *HanchanService) GetByID(ctx context.Context, id int) (*domain.Hanchan, 
 	}
 
 	return hanchan, nil
+}
+
+func (s *HanchanService) ListHanchansByGroupID(ctx context.Context, groupID int) ([]*domain.Hanchan, error) {
+
+	var hanchans []*domain.Hanchan
+
+	hanchans, err := s.hanchanRepo.ListByGroup(ctx, groupID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return hanchans, nil
+}
+
+func (s *HanchanService) AssignPlayerToHanchan(ctx context.Context, playerID int, hanchanID int, initialSeat domain.SeatWind) error {
+
+	hp := &domain.HanchanPlayer{PlayerID: playerID, HanchanID: hanchanID, InitialSeat: initialSeat}
+
+	return s.hanchanRepo.AssignPlayer(ctx, hp)
+
 }

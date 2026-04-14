@@ -58,7 +58,7 @@ func (h *HanchanHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hanchan, err := h.svc.GetByID(r.Context(), id)
+	hanchan, err := h.svc.GetHanchanByID(r.Context(), id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return

@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"HanchanManager/internal/domain"
@@ -12,10 +13,10 @@ import (
 type HanchanRepository interface {
 	Create(ctx context.Context, hanchan *domain.Hanchan) error
 	GetByID(ctx context.Context, id int) (*domain.Hanchan, error)
-	// ListByGroup(ctx context.Context, groupID int) ([]*domain.Hanchan, error)
-	// AddPlayer(ctx context.Context, hp *domain.HanchanPlayer) error
-	// ListPlayers(ctx context.Context, hanchanID int) ([]*domain.HanchanPlayer, error)
-	// Close(ctx context.Context, hanchanID int, results []domain.HanchanPlayer) error
+	ListByGroup(ctx context.Context, groupID int) ([]*domain.Hanchan, error)
+	AssignPlayer(ctx context.Context, hp *domain.HanchanPlayer) error
+	ListPlayers(ctx context.Context, hanchanID int) ([]*domain.HanchanPlayer, error)
+	Close(ctx context.Context, hanchanID int, results []domain.HanchanPlayer) error
 }
 
 type hanchanRepo struct {
@@ -44,4 +45,20 @@ func (r *hanchanRepo) GetByID(ctx context.Context, id int) (*domain.Hanchan, err
 	}
 
 	return h, nil
+}
+
+func (r *hanchanRepo) ListByGroup(ctx context.Context, groupID int) ([]*domain.Hanchan, error) {
+	return nil, errors.New("Method not yet implemented")
+}
+
+func (r *hanchanRepo) AssignPlayer(ctx context.Context, hp *domain.HanchanPlayer) error {
+	return errors.New("Method not yet implemented")
+}
+
+func (r *hanchanRepo) ListPlayers(ctx context.Context, hanchanID int) ([]*domain.HanchanPlayer, error) {
+	return nil, errors.New("Method not yet implemented")
+}
+
+func (r *hanchanRepo) Close(ctx context.Context, hanchanID int, results []domain.HanchanPlayer) error {
+	return errors.New("Method not yet implemented")
 }
