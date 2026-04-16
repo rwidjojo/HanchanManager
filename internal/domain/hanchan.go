@@ -20,6 +20,11 @@ const (
 	SeatNorth SeatWind = "NORTH"
 )
 
+type PlayerSeating struct {
+	PlayerID    int      `json:"player_id"`
+	InitialSeat SeatWind `json:"initial_seat"`
+}
+
 type Hanchan struct {
 	ID        int            `json:"id"`
 	GroupID   int            `json:"group_id"`
@@ -32,9 +37,8 @@ type Hanchan struct {
 }
 
 type HanchanPlayer struct {
-	HanchanID   int      `json:"hanchan_id"`
-	PlayerID    int      `json:"player_id"`
-	InitialSeat SeatWind `json:"initial_seat"`
-	FinalScore  *int     `json:"final_score,omitempty"` // null until hanchan closed
-	Placement   *int     `json:"placement,omitempty"`   // null until hanchan closed
+	HanchanID  int           `json:"hanchan_id"`
+	PlayerSeat PlayerSeating `json:"player_seat"`
+	FinalScore *int          `json:"final_score,omitempty"` // null until hanchan closed
+	Placement  *int          `json:"placement,omitempty"`   // null until hanchan closed
 }

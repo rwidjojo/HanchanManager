@@ -17,7 +17,7 @@ func NewHanchanService(repo repository.HanchanRepository) *HanchanService {
 	return &HanchanService{hanchanRepo: repo}
 }
 
-func (s *HanchanService) CreateHanchan(ctx context.Context, groupID int, name *string, date time.Time, uma *[]int, baseScore *int) (*domain.Hanchan, error) {
+func (s *HanchanService) CreateHanchan(ctx context.Context, groupID int, name *string, date time.Time, uma *[]int, baseScore *int, seating []domain.PlayerSeating) (*domain.Hanchan, error) {
 
 	var hanchanUma []int
 	var hanchanBaseScore int
@@ -75,7 +75,10 @@ func (s *HanchanService) ListHanchansByGroupID(ctx context.Context, groupID int)
 
 func (s *HanchanService) AssignPlayerToHanchan(ctx context.Context, playerID int, hanchanID int, initialSeat domain.SeatWind) error {
 
-	hp := &domain.HanchanPlayer{PlayerID: playerID, HanchanID: hanchanID, InitialSeat: initialSeat}
+	hp := &domain.HanchanPlayer{
+		HanchanID:  hanchanID,
+		PlayerSeat: domain.PlayerSeating{PlayerID: playerID, InitialSeat: initialSeat},
+	}
 
 	return s.hanchanRepo.AssignPlayer(ctx, hp)
 

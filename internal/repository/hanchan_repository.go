@@ -72,7 +72,7 @@ func (r *hanchanRepo) ListByGroup(ctx context.Context, groupID int) ([]*domain.H
 
 func (r *hanchanRepo) AssignPlayer(ctx context.Context, hp *domain.HanchanPlayer) error {
 	query := `INSERT INTO hanchan_players (hanchan_id, player_id, initial_set) VALUES ($1, $2, $3)`
-	_, err := r.db.Exec(ctx, query, hp.HanchanID, hp.PlayerID, hp.InitialSeat)
+	_, err := r.db.Exec(ctx, query, hp.HanchanID, hp.PlayerSeat.PlayerID, hp.PlayerSeat.InitialSeat)
 	return err
 }
 
@@ -91,7 +91,7 @@ func (r *hanchanRepo) ListPlayers(ctx context.Context, hanchanID int) ([]*domain
 	var players []*domain.HanchanPlayer
 	for rows.Next() {
 		hp := &domain.HanchanPlayer{}
-		if err := rows.Scan(&hp.HanchanID, &hp.PlayerID, &hp.InitialSeat, &hp.FinalScore, &hp.Placement); err != nil {
+		if err := rows.Scan(&hp.HanchanID, &hp.PlayerSeat.PlayerID, &hp.PlayerSeat.InitialSeat, &hp.FinalScore, &hp.Placement); err != nil {
 			return nil, fmt.Errorf("scan hanchan player: %w", err)
 		}
 		players = append(players, hp)
