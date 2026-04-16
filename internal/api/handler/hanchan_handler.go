@@ -32,12 +32,12 @@ func (h *HanchanHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	groupID, err := strconv.Atoi(chi.URLParam(r, "groupID"))
 	if err != nil {
-		fmt.Printf("Error during conversion: %v\n", err)
+		fmt.Printf("error during conversion: %v\n", err)
 		return
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid request", http.StatusBadRequest)
+		http.Error(w, "invalid request", http.StatusBadRequest)
 		return
 	}
 
@@ -54,7 +54,7 @@ func (h *HanchanHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 
 	id, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
-		fmt.Printf("Error during conversion: %v\n", err)
+		fmt.Printf("error during conversion: %v\n", err)
 		return
 	}
 

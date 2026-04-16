@@ -38,7 +38,7 @@ func (r *membershipRepo) GetPlayers(ctx context.Context, groupID int) ([]*domain
 
 	rows, err := r.db.Query(ctx, query, groupID)
 	if err != nil {
-		return nil, fmt.Errorf("GetPlayers: %w", err)
+		return nil, fmt.Errorf("get player: %w", err)
 	}
 	defer rows.Close()
 
@@ -46,7 +46,7 @@ func (r *membershipRepo) GetPlayers(ctx context.Context, groupID int) ([]*domain
 	for rows.Next() {
 		p := &domain.Player{}
 		if err := rows.Scan(&p.ID, &p.Username, &p.Name, &p.CreatedAt); err != nil {
-			return nil, fmt.Errorf("Fetch GetPlayers: %w", err)
+			return nil, fmt.Errorf("scan players: %w", err)
 		}
 		players = append(players, p)
 	}

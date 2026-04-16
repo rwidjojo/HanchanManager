@@ -29,7 +29,7 @@ func (s *HanchanService) CreateHanchan(ctx context.Context, groupID int, name *s
 	if uma == nil {
 		hanchanUma = []int{15000, 5000, -5000, -15000}
 	} else if len(*uma) != 4 {
-		return nil, fmt.Errorf("Uma must have exactly 4 values, got %v", uma)
+		return nil, fmt.Errorf("uma must have exactly 4 values, got %v", uma)
 	} else {
 		hanchanUma = *uma
 	}

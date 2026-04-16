@@ -37,7 +37,7 @@ func (r *playerRepo) GetByID(ctx context.Context, id int) (*domain.Player, error
 	).Scan(&p.ID, &p.Username, &p.Name, &p.CreatedAt)
 
 	if err != nil {
-		return nil, fmt.Errorf("GetPlayerByID: %w", err)
+		return nil, fmt.Errorf("get player: %w", err)
 	}
 
 	return p, nil
@@ -48,7 +48,7 @@ func (r *playerRepo) List(ctx context.Context) ([]*domain.Player, error) {
 		`SELECT id, username, name, created_at FROM players ORDER BY created_at`,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("ListPlayers: %w", err)
+		return nil, fmt.Errorf("list players: %w", err)
 	}
 	defer rows.Close()
 
@@ -56,7 +56,7 @@ func (r *playerRepo) List(ctx context.Context) ([]*domain.Player, error) {
 	for rows.Next() {
 		p := &domain.Player{}
 		if err := rows.Scan(&p.ID, &p.Username, &p.Name, &p.CreatedAt); err != nil {
-			return nil, fmt.Errorf("ListPlayers scan: %w", err)
+			return nil, fmt.Errorf("scan players: %w", err)
 		}
 		players = append(players, p)
 	}

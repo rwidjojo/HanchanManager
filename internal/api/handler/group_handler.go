@@ -28,7 +28,7 @@ func (h *GroupHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var req createGroupRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid request", http.StatusBadRequest)
+		http.Error(w, "invalid request", http.StatusBadRequest)
 		return
 	}
 
@@ -45,7 +45,7 @@ func (h *GroupHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 
 	id, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
-		fmt.Printf("Error during conversion: %v\n", err)
+		fmt.Printf("error during conversion: %v\n", err)
 		return
 	}
 
@@ -62,7 +62,7 @@ func (h *GroupHandler) AddPlayer(w http.ResponseWriter, r *http.Request) {
 
 	groupID, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
-		fmt.Printf("Error during conversion: %v\n", err)
+		fmt.Printf("error during conversion: %v\n", err)
 		return
 	}
 
@@ -70,7 +70,7 @@ func (h *GroupHandler) AddPlayer(w http.ResponseWriter, r *http.Request) {
 		PlayerID int `json:"player_id"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid request", http.StatusBadRequest)
+		http.Error(w, "invalid request", http.StatusBadRequest)
 		return
 	}
 	if err := h.svc.AddPlayer(r.Context(), groupID, req.PlayerID); err != nil {
@@ -84,7 +84,7 @@ func (h *GroupHandler) GetPlayers(w http.ResponseWriter, r *http.Request) {
 
 	groupID, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
-		fmt.Printf("Error during conversion: %v\n", err)
+		fmt.Printf("error during conversion: %v\n", err)
 		return
 	}
 

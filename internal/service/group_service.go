@@ -19,7 +19,7 @@ func NewGroupService(groupRepo repository.GroupRepository, membershipRepo reposi
 
 func (s *GroupService) CreateGroup(ctx context.Context, code string, description *string) (*domain.Group, error) {
 	if code == "" {
-		return nil, errors.New("Group unique code is required!")
+		return nil, errors.New("group unique code is required!")
 	}
 
 	group := &domain.Group{Code: code, Description: description}

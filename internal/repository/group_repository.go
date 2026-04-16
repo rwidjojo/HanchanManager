@@ -36,7 +36,7 @@ func (r *groupRepo) GetByID(ctx context.Context, id int) (*domain.Group, error) 
 	).Scan(&g.ID, &g.Code, &g.Description, &g.CreatedAt)
 
 	if err != nil {
-		return nil, fmt.Errorf("GetGroupByID: %w", err)
+		return nil, fmt.Errorf("get group: %w", err)
 	}
 
 	return g, nil

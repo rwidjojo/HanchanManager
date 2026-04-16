@@ -18,11 +18,11 @@ func NewPlayerService(repo repository.PlayerRepository) *PlayerService {
 
 func (s *PlayerService) CreatePlayer(ctx context.Context, username string, name string) (*domain.Player, error) {
 	if username == "" {
-		return nil, errors.New("Username is required")
+		return nil, errors.New("username is required")
 	}
 
 	if name == "" {
-		return nil, errors.New("Name is required")
+		return nil, errors.New("name is required")
 	}
 
 	player := &domain.Player{Username: username, Name: name}
