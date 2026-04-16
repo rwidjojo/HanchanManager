@@ -41,22 +41,62 @@ func (r *hanchanRepo) GetByID(ctx context.Context, id int) (*domain.Hanchan, err
 	).Scan(&h.ID, &h.GroupID, &h.Name, &h.Date, &h.Status, &h.BaseScore, &h.Uma, &h.CreatedAt)
 
 	if err != nil {
-		return nil, fmt.Errorf("GetHanchanByID: %w", err)
+		return nil, fmt.Errorf("get hanchan: %w", err)
 	}
 
 	return h, nil
 }
 
 func (r *hanchanRepo) ListByGroup(ctx context.Context, groupID int) ([]*domain.Hanchan, error) {
-	return nil, errors.New("Method not yet implemented")
+	rows, err := r.db.Query(ctx,
+		`SELECT id, group_id, name, date, status, base_score, uma, created_at
+		FROM hanchans
+		WHERE group_id = $1`,
+		groupID,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("list hanchans: %w", err)
+	}
+	defer rows.Close()
+
+	var hanchans []*domain.Hanchan
+	for rows.Next() {
+		h := &domain.Hanchan{}
+		if err := rows.Scan(&h.ID, &h.GroupID, &h.Name, &h.Status, &h.BaseScore, &h.Uma, &h.CreatedAt); err != nil {
+			return nil, fmt.Errorf("scan hanchan: %w", err)
+		}
+		hanchans = append(hanchans, h)
+	}
+	return hanchans, rows.Err()
 }
 
 func (r *hanchanRepo) AssignPlayer(ctx context.Context, hp *domain.HanchanPlayer) error {
-	return errors.New("Method not yet implemented")
+	query := `INSERT INTO hanchan_players (hanchan_id, player_id, initial_set) VALUES ($1, $2, $3)`
+	_, err := r.db.Exec(ctx, query, hp.HanchanID, hp.PlayerID, hp.InitialSeat)
+	return err
 }
 
 func (r *hanchanRepo) ListPlayers(ctx context.Context, hanchanID int) ([]*domain.HanchanPlayer, error) {
-	return nil, errors.New("Method not yet implemented")
+	rows, err := r.db.Query(ctx,
+		`SELECT hanchan_id, player_id, initial_seat, final_score, placement
+		FROM hanchan_players
+		WHERE hanchan_id = $1`,
+		hanchanID,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("list hanchan players: %w", err)
+	}
+	defer rows.Close()
+
+	var players []*domain.HanchanPlayer
+	for rows.Next() {
+		hp := &domain.HanchanPlayer{}
+		if err := rows.Scan(&hp.HanchanID, &hp.PlayerID, &hp.InitialSeat, &hp.FinalScore, &hp.Placement); err != nil {
+			return nil, fmt.Errorf("scan hanchan player: %w", err)
+		}
+		players = append(players, hp)
+	}
+	return players, rows.Err()
 }
 
 func (r *hanchanRepo) Close(ctx context.Context, hanchanID int, results []domain.HanchanPlayer) error {
