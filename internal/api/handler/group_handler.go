@@ -45,7 +45,7 @@ func (h *GroupHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 
 	id, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
-		fmt.Printf("error during conversion: %v\n", err)
+		http.Error(w, "invalid group ID", http.StatusBadRequest)
 		return
 	}
 
@@ -84,7 +84,7 @@ func (h *GroupHandler) GetPlayers(w http.ResponseWriter, r *http.Request) {
 
 	groupID, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
-		fmt.Printf("error during conversion: %v\n", err)
+		http.Error(w, "invalid group ID", http.StatusBadRequest)
 		return
 	}
 

@@ -2,7 +2,6 @@ package handler
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -53,10 +52,10 @@ func (h *PlayerHandler) List(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *PlayerHandler) GetByID(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(chi.URLParam(r, "id"))
 
+	id, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
-		fmt.Printf("error during conversion: %v\n", err)
+		http.Error(w, "invalid player ID", http.StatusBadRequest)
 		return
 	}
 

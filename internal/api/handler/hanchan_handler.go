@@ -58,7 +58,7 @@ func (h *HanchanHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	groupID, err := strconv.Atoi(chi.URLParam(r, "groupID"))
 	if err != nil {
-		fmt.Printf("error during conversion: %v\n", err)
+		http.Error(w, "invalid group ID", http.StatusBadRequest)
 		return
 	}
 
@@ -95,11 +95,15 @@ func (h *HanchanHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 
 	id, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
-		fmt.Printf("error during conversion: %v\n", err)
+		http.Error(w, "invalid hanchan ID", http.StatusBadRequest)
 		return
 	}
 
 	hanchan, err := h.svc.GetHanchanByID(r.Context(), id)
+	// ToDo: add NotFoundError to differentiate between
+	// - resource not found (404)
+	// - interval server error (500)
+	// - should not respond with 400?
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return

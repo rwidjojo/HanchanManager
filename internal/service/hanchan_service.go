@@ -63,10 +63,12 @@ func (s *HanchanService) CreateHanchan(ctx context.Context, input CreateHanchanI
 
 	// ToDo: we should implement transaction here
 	// hanchan creation and player assignment should be one single transaction
+	status := domain.HanchanOpen
 	hanchan := &domain.Hanchan{
 		GroupID:   input.GroupID,
 		Name:      input.Name,
 		Date:      hanchanDate,
+		Status:    &status,
 		Uma:       hanchanUma,
 		BaseScore: hanchanBaseScore,
 	}
@@ -100,8 +102,6 @@ func (s *HanchanService) GetHanchanByID(ctx context.Context, id int) (*domain.Ha
 
 func (s *HanchanService) ListHanchansByGroupID(ctx context.Context, groupID int) ([]*domain.Hanchan, error) {
 
-	var hanchans []*domain.Hanchan
-
 	hanchans, err := s.hanchanRepo.ListByGroup(ctx, groupID)
 
 	if err != nil {
@@ -120,12 +120,10 @@ func validateSeating(seats []domain.PlayerSeating) error {
 	seatSeen := make(map[domain.SeatWind]int, 4)
 
 	for _, seat := range seats {
-		switch seat.InitialSeat {
-		case domain.SeatEast, domain.SeatSouth, domain.SeatWest, domain.SeatNorth:
-			seatSeen[seat.InitialSeat]++
-		default:
+		if !seat.InitialSeat.IsValid() {
 			return fmt.Errorf("invalid seat: %s", seat.InitialSeat)
 		}
+		seatSeen[seat.InitialSeat]++
 	}
 
 	for _, s := range []domain.SeatWind{domain.SeatEast, domain.SeatSouth, domain.SeatWest, domain.SeatNorth} {
