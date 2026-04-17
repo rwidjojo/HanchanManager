@@ -21,12 +21,36 @@ func NewHanchanHandler(svc *service.HanchanService) *HanchanHandler {
 	return &HanchanHandler{svc: svc}
 }
 
+type playerSeatingRequest struct {
+	PlayerID    int    `json:"player_id"`
+	InitialSeat string `json:"initial_seat"`
+}
+
 type createHanchanRequest struct {
 	Name      *string                `json:"name,omitempty"`
 	Date      time.Time              `json:"date"`
 	BaseScore *int                   `json:"base_score,omitempty"`
 	Uma       *[]int                 `json:"uma,omitempty"`
-	Seating   []domain.PlayerSeating `json:"seating"`
+	Seating   []playerSeatingRequest `json:"seating"`
+}
+
+func mapSeating(req []playerSeatingRequest) ([]domain.PlayerSeating, error) {
+	seating := make([]domain.PlayerSeating, 0, len(req))
+
+	for _, s := range req {
+		sw := domain.SeatWind(s.InitialSeat)
+
+		if !sw.IsValid() {
+			return nil, fmt.Errorf("invalid seat: %s", s.InitialSeat)
+		}
+
+		seating = append(seating, domain.PlayerSeating{
+			PlayerID:    s.PlayerID,
+			InitialSeat: sw,
+		})
+	}
+
+	return seating, nil
 }
 
 func (h *HanchanHandler) Create(w http.ResponseWriter, r *http.Request) {
@@ -43,7 +67,22 @@ func (h *HanchanHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hanchan, err := h.svc.CreateHanchan(r.Context(), groupID, req.Name, req.Date, req.Uma, req.BaseScore, req.Seating)
+	seating, err := mapSeating(req.Seating)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	input := service.CreateHanchanInput{
+		GroupID:   groupID,
+		Name:      req.Name,
+		Date:      req.Date,
+		BaseScore: req.BaseScore,
+		Uma:       req.Uma,
+		Seating:   seating,
+	}
+
+	hanchan, err := h.svc.CreateHanchan(r.Context(), input)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
