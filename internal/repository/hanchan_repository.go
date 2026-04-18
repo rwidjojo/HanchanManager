@@ -71,7 +71,7 @@ func (r *hanchanRepo) ListByGroup(ctx context.Context, groupID int) ([]*domain.H
 }
 
 func (r *hanchanRepo) AssignPlayer(ctx context.Context, hp *domain.HanchanPlayer) error {
-	query := `INSERT INTO hanchan_players (hanchan_id, player_id, initial_set) VALUES ($1, $2, $3)`
+	query := `INSERT INTO hanchan_players (hanchan_id, player_id, initial_seat) VALUES ($1, $2, $3)`
 	_, err := r.db.Exec(ctx, query, hp.HanchanID, hp.PlayerSeat.PlayerID, hp.PlayerSeat.InitialSeat)
 	return err
 }
