@@ -2,12 +2,14 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
 	"time"
 
 	"HanchanManager/internal/domain"
+	"HanchanManager/internal/repository"
 	"HanchanManager/internal/service"
 
 	"github.com/go-chi/chi/v5"
@@ -84,7 +86,7 @@ func (h *HanchanHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	hanchan, err := h.svc.CreateHanchan(r.Context(), input)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, "failed to create hanchan", http.StatusInternalServerError)
 		return
 	}
 
@@ -100,12 +102,12 @@ func (h *HanchanHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	hanchan, err := h.svc.GetHanchanByID(r.Context(), id)
-	// ToDo: add NotFoundError to differentiate between
-	// - resource not found (404)
-	// - interval server error (500)
-	// - should not respond with 400?
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		if errors.Is(err, repository.ErrNotFound) {
+			http.Error(w, "hanchan not found", http.StatusNotFound)
+		}
+
+		http.Error(w, "failed to get hanchan", http.StatusInternalServerError)
 		return
 	}
 

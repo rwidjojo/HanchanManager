@@ -2,7 +2,6 @@ package handler
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -34,7 +33,7 @@ func (h *GroupHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	group, err := h.svc.CreateGroup(r.Context(), req.Code, req.Description)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, "failed to create group", http.StatusInternalServerError)
 		return
 	}
 
@@ -51,7 +50,7 @@ func (h *GroupHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 
 	group, err := h.svc.GetGroupByID(r.Context(), id)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, "failed to get group", http.StatusInternalServerError)
 		return
 	}
 
@@ -62,7 +61,7 @@ func (h *GroupHandler) AddPlayer(w http.ResponseWriter, r *http.Request) {
 
 	groupID, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
-		fmt.Printf("error during conversion: %v\n", err)
+		http.Error(w, "invalid group ID", http.StatusBadRequest)
 		return
 	}
 
@@ -74,7 +73,7 @@ func (h *GroupHandler) AddPlayer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := h.svc.AddPlayer(r.Context(), groupID, req.PlayerID); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "failed to add player", http.StatusInternalServerError)
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)
@@ -90,7 +89,7 @@ func (h *GroupHandler) GetPlayers(w http.ResponseWriter, r *http.Request) {
 
 	players, err := h.svc.GetPlayers(r.Context(), groupID)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "failed to get players", http.StatusInternalServerError)
 		return
 	}
 	json.NewEncoder(w).Encode(players)

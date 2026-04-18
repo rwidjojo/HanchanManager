@@ -33,7 +33,7 @@ func (h *PlayerHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	player, err := h.svc.CreatePlayer(r.Context(), req.Username, req.Name)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, "failed to create player", http.StatusInternalServerError)
 		return
 	}
 
@@ -44,7 +44,7 @@ func (h *PlayerHandler) List(w http.ResponseWriter, r *http.Request) {
 	players, err := h.svc.ListPlayers(r.Context())
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "failed to list players", http.StatusInternalServerError)
 		return
 	}
 
@@ -61,7 +61,7 @@ func (h *PlayerHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 
 	player, err := h.svc.GetPlayerByID(r.Context(), id)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, "failed to get player", http.StatusInternalServerError)
 		return
 	}
 
