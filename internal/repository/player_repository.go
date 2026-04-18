@@ -2,10 +2,12 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"HanchanManager/internal/domain"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -37,6 +39,10 @@ func (r *playerRepo) GetByID(ctx context.Context, id int) (*domain.Player, error
 	).Scan(&p.ID, &p.Username, &p.Name, &p.CreatedAt)
 
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+
 		return nil, fmt.Errorf("get player: %w", err)
 	}
 
