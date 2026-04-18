@@ -113,3 +113,39 @@ func (h *HanchanHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode(hanchan)
 }
+
+func (h *HanchanHandler) ListByGroup(w http.ResponseWriter, r *http.Request) {
+	groupID, err := strconv.Atoi(chi.URLParam(r, "groupID"))
+	if err != nil {
+		http.Error(w, "invalid group id", http.StatusBadRequest)
+		return
+	}
+
+	hanchans, err := h.svc.ListHanchansByGroupID(r.Context(), groupID)
+
+	if err != nil {
+		http.Error(w, "failed to list hanchans", http.StatusInternalServerError)
+	}
+
+	json.NewEncoder(w).Encode(hanchans)
+}
+
+func (h *HanchanHandler) ListPlayers(w http.ResponseWriter, r *http.Request) {
+	hanchanID, err := strconv.Atoi(chi.URLParam(r, "id"))
+	if err != nil {
+		http.Error(w, "invalid hanchan id", http.StatusBadRequest)
+		return
+	}
+
+	players, err := h.svc.ListPlayersByHanchanID(r.Context(), hanchanID)
+
+	if err != nil {
+		http.Error(w, "failed to list hanchan players", http.StatusInternalServerError)
+	}
+
+	json.NewEncoder(w).Encode(players)
+}
+
+func (h *HanchanHandler) Close(w http.ResponseWriter, r *http.Request) {
+	// ToDo: implement
+}

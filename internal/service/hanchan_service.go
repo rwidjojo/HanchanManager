@@ -10,11 +10,13 @@ import (
 )
 
 type HanchanService struct {
-	hanchanRepo repository.HanchanRepository
+	hanchanRepo    repository.HanchanRepository
+	playerRepo     repository.PlayerRepository
+	membershipRepo repository.MembershipRepository
 }
 
-func NewHanchanService(repo repository.HanchanRepository) *HanchanService {
-	return &HanchanService{hanchanRepo: repo}
+func NewHanchanService(hanchanRepo repository.HanchanRepository, playerRepo repository.PlayerRepository, membershipRepo repository.MembershipRepository) *HanchanService {
+	return &HanchanService{hanchanRepo: hanchanRepo, playerRepo: playerRepo, membershipRepo: membershipRepo}
 }
 
 type CreateHanchanInput struct {
@@ -58,8 +60,9 @@ func (s *HanchanService) CreateHanchan(ctx context.Context, input CreateHanchanI
 		return nil, fmt.Errorf("invalid players: %w", err)
 	}
 
-	// ToDo: implement validation to check if requested player id is part of the group
-	// if not, need to raise Error
+	if err := s.validateMembership(ctx, input.GroupID, input.Seating); err != nil {
+		return nil, err
+	}
 
 	// ToDo: we should implement transaction here
 	// hanchan creation and player assignment should be one single transaction
@@ -109,6 +112,53 @@ func (s *HanchanService) ListHanchansByGroupID(ctx context.Context, groupID int)
 	}
 
 	return hanchans, nil
+}
+
+func (s *HanchanService) ListPlayersByHanchanID(ctx context.Context, hanchanID int) ([]*domain.Player, error) {
+
+	hanchanPlayers, err := s.hanchanRepo.ListPlayers(ctx, hanchanID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var players []*domain.Player
+
+	for _, hp := range hanchanPlayers {
+		p, err := s.playerRepo.GetByID(ctx, hp.PlayerSeat.PlayerID)
+		if err != nil {
+			return nil, fmt.Errorf("get hanchan player: %w", err)
+		}
+		players = append(players, p)
+	}
+
+	return players, nil
+}
+
+func (s *HanchanService) validateMembership(ctx context.Context, groupID int, seats []domain.PlayerSeating) error {
+
+	playerIDs := make([]int, len(seats))
+	for i, s := range seats {
+		playerIDs[i] = s.PlayerID
+	}
+
+	found, err := s.membershipRepo.CheckMemberships(ctx, groupID, playerIDs)
+	if err != nil {
+		return fmt.Errorf("checking memberships: %w", err)
+	}
+
+	foundSet := make(map[int]struct{}, len(found))
+	for _, pid := range found {
+		foundSet[pid] = struct{}{}
+	}
+
+	for _, pid := range playerIDs {
+		if _, exists := foundSet[pid]; !exists {
+			return fmt.Errorf("player %d is not a member of group %d", pid, groupID)
+		}
+	}
+
+	return nil
 }
 
 func validateSeating(seats []domain.PlayerSeating) error {

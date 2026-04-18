@@ -11,6 +11,7 @@ import (
 
 type MembershipRepository interface {
 	AddPlayer(ctx context.Context, groupID int, playerID int) error
+	CheckMemberships(ctx context.Context, groupID int, playerIDs []int) ([]int, error)
 	GetPlayers(ctx context.Context, groupID int) ([]*domain.Player, error)
 }
 
@@ -26,6 +27,28 @@ func (r *membershipRepo) AddPlayer(ctx context.Context, groupID int, playerID in
 	query := `INSERT INTO group_members (group_id, player_id) VALUES ($1, $2)`
 	_, err := r.db.Exec(ctx, query, groupID, playerID)
 	return err
+}
+
+func (r *membershipRepo) CheckMemberships(ctx context.Context, groupID int, playerIDs []int) ([]int, error) {
+	rows, err := r.db.Query(ctx,
+		`SELECT player_id FROM group_members WHERE group_id = $1 AND player_id = ANY($2)`,
+		groupID, playerIDs,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("check memberships: %w", err)
+	}
+	defer rows.Close()
+
+	found := make([]int, 0, len(playerIDs))
+	for rows.Next() {
+		var pid int
+		if err := rows.Scan(&pid); err != nil {
+			return nil, fmt.Errorf("scan membership: %w", err)
+		}
+		found = append(found, pid)
+	}
+
+	return found, nil
 }
 
 func (r *membershipRepo) GetPlayers(ctx context.Context, groupID int) ([]*domain.Player, error) {

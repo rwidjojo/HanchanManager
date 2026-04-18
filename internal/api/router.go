@@ -18,20 +18,20 @@ func NewRouter(db *pgxpool.Pool) http.Handler {
 	// Global middleware
 	r.Use(chimw.StripSlashes)
 
-	// Players
+	// repositories
 	playerRepo := repository.NewPlayerRepo(db)
-	playerSvc := service.NewPlayerService(playerRepo)
-	playerHandler := handler.NewPlayerHandler(playerSvc)
-
-	// Groups
 	groupRepo := repository.NewGroupRepo(db)
 	membershipRepo := repository.NewMembershipRepo(db)
-	groupSvc := service.NewGroupService(groupRepo, membershipRepo)
-	groupHandler := handler.NewGroupHandler(groupSvc)
-
-	// Hanchan
 	hanchanRepo := repository.NewHanchanRepo(db)
-	hanchanSvc := service.NewHanchanService(hanchanRepo)
+
+	// services
+	playerSvc := service.NewPlayerService(playerRepo)
+	groupSvc := service.NewGroupService(groupRepo, membershipRepo)
+	hanchanSvc := service.NewHanchanService(hanchanRepo, playerRepo, membershipRepo)
+
+	// handlers
+	playerHandler := handler.NewPlayerHandler(playerSvc)
+	groupHandler := handler.NewGroupHandler(groupSvc)
 	hanchanHandler := handler.NewHanchanHandler(hanchanSvc)
 
 	// Health check
