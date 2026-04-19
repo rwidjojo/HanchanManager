@@ -2,12 +2,10 @@ package repository
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"HanchanManager/internal/domain"
 
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -106,23 +104,6 @@ func (r *hanchanRepo) Close(ctx context.Context, hanchanID int, results []domain
 		return fmt.Errorf("begin tx: %w", err)
 	}
 	defer tx.Rollback(ctx)
-
-	// check if hanchan is still open
-	var status string
-	err = tx.QueryRow(ctx,
-		`SELECT status FROM hanchans WHERE id = $1`, hanchanID,
-	).Scan(&status)
-
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return ErrNotFound
-		}
-		return fmt.Errorf("check hanchan status: %w", err)
-	}
-
-	if status == string(domain.HanchanClosed) {
-		return ErrAlreadyClosed
-	}
 
 	// Write final_score and placement for each player.
 	for _, r := range results {
