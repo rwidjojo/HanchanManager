@@ -7,6 +7,7 @@ import (
 
 	"HanchanManager/internal/domain"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -100,5 +101,54 @@ func (r *hanchanRepo) ListPlayers(ctx context.Context, hanchanID int) ([]*domain
 }
 
 func (r *hanchanRepo) Close(ctx context.Context, hanchanID int, results []domain.HanchanPlayer) error {
-	return errors.New("Method not yet implemented")
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("begin tx: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	// check if hanchan is still open
+	var status string
+	err = tx.QueryRow(ctx,
+		`SELECT status FROM hanchans WHERE id = $1`, hanchanID,
+	).Scan(&status)
+
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return ErrNotFound
+		}
+		return fmt.Errorf("check hanchan status: %w", err)
+	}
+
+	if status == string(domain.HanchanClosed) {
+		return ErrAlreadyClosed
+	}
+
+	// Write final_score and placement for each player.
+	for _, r := range results {
+		tag, err := tx.Exec(ctx, `
+				UPDATE hanchan_players
+				SET final_score = $1, placement = $2
+				WHERE hanchan_id = $3 AND player_id = $4`,
+			r.FinalScore, r.Placement, hanchanID, r.PlayerSeat.PlayerID,
+		)
+		if err != nil {
+			return fmt.Errorf("update hanchan_player %d: %w", r.PlayerSeat.PlayerID, err)
+		}
+		if tag.RowsAffected() == 0 {
+			return fmt.Errorf("player %d not found in hanchan: %w", r.PlayerSeat.PlayerID, ErrNotFound)
+		}
+	}
+
+	// Mark the hanchan as closed.
+	_, err = tx.Exec(ctx, `UPDATE hanchans SET status = 'CLOSED' WHERE id = $1`, hanchanID)
+	if err != nil {
+		return fmt.Errorf("close hanchan: %w", err)
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return fmt.Errorf("commit: %w", err)
+	}
+
+	return nil
 }
