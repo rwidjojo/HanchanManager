@@ -2,10 +2,12 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"HanchanManager/internal/domain"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -24,8 +26,8 @@ func NewGroupRepo(db *pgxpool.Pool) GroupRepository {
 }
 
 func (r *groupRepo) Create(ctx context.Context, group *domain.Group) error {
-	query := `INSERT INTO groups (code, description) VALUES ($1, $2) RETURNING id`
-	return r.db.QueryRow(ctx, query, group.Code, group.Description).Scan(&group.ID)
+	query := `INSERT INTO groups (code, description) VALUES ($1, $2) RETURNING id, created_at`
+	return r.db.QueryRow(ctx, query, group.Code, group.Description).Scan(&group.ID, &group.CreatedAt)
 }
 
 func (r *groupRepo) GetByID(ctx context.Context, id int) (*domain.Group, error) {
@@ -37,6 +39,9 @@ func (r *groupRepo) GetByID(ctx context.Context, id int) (*domain.Group, error) 
 	).Scan(&g.ID, &g.Code, &g.Description, &g.CreatedAt)
 
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrNotFound
+		}
 		return nil, fmt.Errorf("get group: %w", err)
 	}
 
@@ -45,10 +50,10 @@ func (r *groupRepo) GetByID(ctx context.Context, id int) (*domain.Group, error) 
 
 func (r *groupRepo) List(ctx context.Context) ([]*domain.Group, error) {
 	rows, err := r.db.Query(ctx,
-		`SELECT id, code, description, created_at FROM players ORDER BY created_at`,
+		`SELECT id, code, description, created_at FROM groups ORDER BY created_at`,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("list players: %w", err)
+		return nil, fmt.Errorf("list groups: %w", err)
 	}
 	defer rows.Close()
 
@@ -56,7 +61,7 @@ func (r *groupRepo) List(ctx context.Context) ([]*domain.Group, error) {
 	for rows.Next() {
 		g := &domain.Group{}
 		if err := rows.Scan(&g.ID, &g.Code, &g.Description, &g.CreatedAt); err != nil {
-			return nil, fmt.Errorf("scan players: %w", err)
+			return nil, fmt.Errorf("scan groups: %w", err)
 		}
 		groups = append(groups, g)
 	}

@@ -2,9 +2,11 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 
+	"HanchanManager/internal/repository"
 	"HanchanManager/internal/service"
 
 	"github.com/go-chi/chi/v5"
@@ -61,6 +63,11 @@ func (h *PlayerHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 
 	player, err := h.svc.GetPlayerByID(r.Context(), id)
 	if err != nil {
+		if errors.Is(err, repository.ErrNotFound) {
+			http.Error(w, "player not found", http.StatusNotFound)
+			return
+		}
+
 		http.Error(w, "failed to get player", http.StatusInternalServerError)
 		return
 	}

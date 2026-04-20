@@ -2,9 +2,11 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 
+	"HanchanManager/internal/repository"
 	"HanchanManager/internal/service"
 
 	"github.com/go-chi/chi/v5"
@@ -50,6 +52,10 @@ func (h *GroupHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 
 	group, err := h.svc.GetGroupByID(r.Context(), id)
 	if err != nil {
+		if errors.Is(err, repository.ErrNotFound) {
+			http.Error(w, "group not found", http.StatusNotFound)
+			return
+		}
 		http.Error(w, "failed to get group", http.StatusInternalServerError)
 		return
 	}

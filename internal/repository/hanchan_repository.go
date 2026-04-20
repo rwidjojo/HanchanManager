@@ -2,10 +2,12 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"HanchanManager/internal/domain"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -35,9 +37,9 @@ func (r *hanchanRepo) CreateWithPlayers(ctx context.Context, hanchan *domain.Han
 	defer tx.Rollback(ctx)
 
 	err = tx.QueryRow(ctx,
-		`INSERT INTO hanchans (group_id, name, date, base_score, uma) VALUES ($1, $2, $3, $4, $5) RETURNING id`,
+		`INSERT INTO hanchans (group_id, name, date, base_score, uma) VALUES ($1, $2, $3, $4, $5) RETURNING id, created_at`,
 		hanchan.GroupID, hanchan.Name, hanchan.Date, hanchan.BaseScore, hanchan.Uma,
-	).Scan(&hanchan.ID)
+	).Scan(&hanchan.ID, &hanchan.CreatedAt)
 
 	if err != nil {
 		return fmt.Errorf("create hanchan: %w", err)
@@ -67,6 +69,9 @@ func (r *hanchanRepo) GetByID(ctx context.Context, id int) (*domain.Hanchan, err
 	).Scan(&h.ID, &h.GroupID, &h.Name, &h.Date, &h.Status, &h.BaseScore, &h.Uma, &h.CreatedAt)
 
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrNotFound
+		}
 		return nil, fmt.Errorf("get hanchan: %w", err)
 	}
 
@@ -88,7 +93,7 @@ func (r *hanchanRepo) ListByGroup(ctx context.Context, groupID int) ([]*domain.H
 	var hanchans []*domain.Hanchan
 	for rows.Next() {
 		h := &domain.Hanchan{}
-		if err := rows.Scan(&h.ID, &h.GroupID, &h.Name, &h.Status, &h.BaseScore, &h.Uma, &h.CreatedAt); err != nil {
+		if err := rows.Scan(&h.ID, &h.GroupID, &h.Name, &h.Date, &h.Status, &h.BaseScore, &h.Uma, &h.CreatedAt); err != nil {
 			return nil, fmt.Errorf("scan hanchan: %w", err)
 		}
 		hanchans = append(hanchans, h)

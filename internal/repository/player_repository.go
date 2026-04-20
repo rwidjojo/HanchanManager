@@ -26,8 +26,8 @@ func NewPlayerRepo(db *pgxpool.Pool) PlayerRepository {
 }
 
 func (r *playerRepo) Create(ctx context.Context, player *domain.Player) error {
-	query := `INSERT INTO players (username, name) VALUES ($1, $2) RETURNING id`
-	return r.db.QueryRow(ctx, query, player.Username, player.Name).Scan(&player.ID)
+	query := `INSERT INTO players (username, name) VALUES ($1, $2) RETURNING id, created_at`
+	return r.db.QueryRow(ctx, query, player.Username, player.Name).Scan(&player.ID, &player.CreatedAt)
 }
 
 func (r *playerRepo) GetByID(ctx context.Context, id int) (*domain.Player, error) {
@@ -42,7 +42,6 @@ func (r *playerRepo) GetByID(ctx context.Context, id int) (*domain.Player, error
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, ErrNotFound
 		}
-
 		return nil, fmt.Errorf("get player: %w", err)
 	}
 
