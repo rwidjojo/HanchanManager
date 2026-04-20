@@ -58,10 +58,12 @@ func NewRouter(db *pgxpool.Pool) http.Handler {
 	// Hanchans (nested under group for creation, standalone for game ops)
 	r.Route("/groups/{groupID}/hanchans", func(r chi.Router) {
 		r.Post("/", hanchanHandler.Create)
+		r.Get("/", hanchanHandler.ListByGroup)
 	})
 
-	r.Route("/hanchans", func(r chi.Router) {
-		r.Get("/{id}", hanchanHandler.GetByID)
+	r.Route("/hanchans/{id}", func(r chi.Router) {
+		r.Get("/", hanchanHandler.GetByID)
+		r.Get("/players", hanchanHandler.ListPlayers)
 	})
 
 	return r
