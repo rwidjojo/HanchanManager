@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -86,6 +87,7 @@ func (h *HanchanHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	hanchan, err := h.svc.CreateHanchan(r.Context(), input)
 	if err != nil {
+		log.Printf("create hanchan error: %v", err) // keep full error in logs
 		http.Error(w, "failed to create hanchan", http.StatusInternalServerError)
 		return
 	}

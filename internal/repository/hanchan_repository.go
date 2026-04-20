@@ -10,7 +10,7 @@ import (
 )
 
 type HanchanRepository interface {
-	Create(ctx context.Context, hanchan *domain.Hanchan) error
+	CreateWithPlayers(ctx context.Context, hanchan *domain.Hanchan, seating []domain.PlayerSeating) error
 	GetByID(ctx context.Context, id int) (*domain.Hanchan, error)
 	ListByGroup(ctx context.Context, groupID int) ([]*domain.Hanchan, error)
 	AssignPlayer(ctx context.Context, hp *domain.HanchanPlayer) error
@@ -26,9 +26,36 @@ func NewHanchanRepo(db *pgxpool.Pool) HanchanRepository {
 	return &hanchanRepo{db: db}
 }
 
-func (r *hanchanRepo) Create(ctx context.Context, hanchan *domain.Hanchan) error {
-	query := `INSERT INTO hanchans (group_id, name, date, base_score, uma) VALUES ($1, $2, $3, $4, $5) RETURNING id`
-	return r.db.QueryRow(ctx, query, hanchan.GroupID, hanchan.Name, hanchan.Date, hanchan.BaseScore, hanchan.Uma).Scan(&hanchan.ID)
+func (r *hanchanRepo) CreateWithPlayers(ctx context.Context, hanchan *domain.Hanchan, seating []domain.PlayerSeating) error {
+
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("begin tx: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	err = tx.QueryRow(ctx,
+		`INSERT INTO hanchans (group_id, name, date, base_score, uma) VALUES ($1, $2, $3, $4, $5) RETURNING id`,
+		hanchan.GroupID, hanchan.Name, hanchan.Date, hanchan.BaseScore, hanchan.Uma,
+	).Scan(&hanchan.ID)
+
+	if err != nil {
+		return fmt.Errorf("create hanchan: %w", err)
+	}
+
+	for _, seat := range seating {
+		query := `INSERT INTO hanchan_players (hanchan_id, player_id, initial_seat) VALUES ($1, $2, $3)`
+		_, err := tx.Exec(ctx, query, hanchan.ID, seat.PlayerID, seat.InitialSeat)
+		if err != nil {
+			return fmt.Errorf("unable to insert hanchan_players %d: %w", seat.PlayerID, err)
+		}
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return fmt.Errorf("commit: %w", err)
+	}
+
+	return nil
 }
 
 func (r *hanchanRepo) GetByID(ctx context.Context, id int) (*domain.Hanchan, error) {

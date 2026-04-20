@@ -64,8 +64,6 @@ func (s *HanchanService) CreateHanchan(ctx context.Context, input CreateHanchanI
 		return nil, err
 	}
 
-	// ToDo: we should implement transaction here
-	// hanchan creation and player assignment should be one single transaction
 	status := domain.HanchanOpen
 	hanchan := &domain.Hanchan{
 		GroupID:   input.GroupID,
@@ -76,17 +74,8 @@ func (s *HanchanService) CreateHanchan(ctx context.Context, input CreateHanchanI
 		BaseScore: hanchanBaseScore,
 	}
 
-	if err := s.hanchanRepo.Create(ctx, hanchan); err != nil {
+	if err := s.hanchanRepo.CreateWithPlayers(ctx, hanchan, input.Seating); err != nil {
 		return nil, fmt.Errorf("create hanchan: %w", err)
-	}
-
-	for _, playerSeat := range input.Seating {
-		hp := &domain.HanchanPlayer{HanchanID: hanchan.ID, PlayerSeat: playerSeat}
-
-		if err := s.hanchanRepo.AssignPlayer(ctx, hp); err != nil {
-			return nil, fmt.Errorf("assign player: %w", err)
-		}
-
 	}
 
 	return hanchan, nil
