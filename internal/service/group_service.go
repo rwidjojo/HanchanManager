@@ -42,6 +42,19 @@ func (s *GroupService) GetGroupByID(ctx context.Context, id int) (*domain.Group,
 	return group, nil
 }
 
+func (s *GroupService) ListGroups(ctx context.Context) ([]*domain.Group, error) {
+
+	var groups []*domain.Group
+
+	groups, err := s.groupRepo.List(ctx)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return groups, nil
+}
+
 func (s *GroupService) AddPlayer(ctx context.Context, groupID int, playerID int) error {
 	return s.membershipRepo.AddPlayer(ctx, groupID, playerID)
 }

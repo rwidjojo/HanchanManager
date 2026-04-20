@@ -57,6 +57,17 @@ func (h *GroupHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(group)
 }
 
+func (h *GroupHandler) List(w http.ResponseWriter, r *http.Request) {
+	groups, err := h.svc.ListGroups(r.Context())
+
+	if err != nil {
+		http.Error(w, "failed to list groups", http.StatusInternalServerError)
+		return
+	}
+
+	json.NewEncoder(w).Encode(groups)
+}
+
 func (h *GroupHandler) AddPlayer(w http.ResponseWriter, r *http.Request) {
 
 	groupID, err := strconv.Atoi(chi.URLParam(r, "id"))
