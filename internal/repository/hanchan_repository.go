@@ -23,19 +23,19 @@ type HanchanRepository interface {
 	WithTx(ctx context.Context, fn func(txRepo HanchanRepository) error) error
 }
 
-type dbExecutor interface {
+type DBTX interface {
 	Exec(ctx context.Context, sql string, args ...any) (pgconn.CommandTag, error)
 	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
 	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
 }
 
 type hanchanRepo struct {
-	db   *pgxpool.Pool
-	exec dbExecutor
+	pool *pgxpool.Pool
+	db   DBTX
 }
 
 func NewHanchanRepo(db *pgxpool.Pool) HanchanRepository {
-	return &hanchanRepo{db: db, exec: db}
+	return &hanchanRepo{pool: db, db: db}
 }
 
 func (r *hanchanRepo) Create(ctx context.Context, hanchan *domain.Hanchan) error {
@@ -152,12 +152,12 @@ func (r *hanchanRepo) UpdatePlacement(ctx context.Context, hp *domain.HanchanPla
 }
 
 func (r *hanchanRepo) WithTx(ctx context.Context, fn func(HanchanRepository) error) error {
-	tx, err := r.db.Begin(ctx)
+	tx, err := r.pool.Begin(ctx)
 	if err != nil {
 		return fmt.Errorf("begin tx: %w", err)
 	}
 
-	txRepo := &hanchanRepo{db: r.db, exec: tx}
+	txRepo := &hanchanRepo{pool: r.pool, db: tx}
 
 	if err := fn(txRepo); err != nil {
 		if rbErr := tx.Rollback(ctx); rbErr != nil {
