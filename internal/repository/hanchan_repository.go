@@ -19,7 +19,7 @@ type HanchanRepository interface {
 	AssignPlayer(ctx context.Context, hp *domain.HanchanPlayer) error
 	ListPlayers(ctx context.Context, hanchanID int) ([]*domain.HanchanPlayer, error)
 	Close(ctx context.Context, hanchanID int) error
-	UpdatePlacement(ctx context.Context, results []domain.HanchanPlayer) error
+	UpdatePlacement(ctx context.Context, hp *domain.HanchanPlayer) error
 	WithTx(ctx context.Context, fn func(txRepo HanchanRepository) error) error
 }
 
@@ -133,31 +133,19 @@ func (r *hanchanRepo) Close(ctx context.Context, hanchanID int) error {
 	return nil
 }
 
-func (r *hanchanRepo) UpdatePlacement(ctx context.Context, results []domain.HanchanPlayer) error {
+func (r *hanchanRepo) UpdatePlacement(ctx context.Context, hp *domain.HanchanPlayer) error {
 
-	tx, err := r.db.Begin(ctx)
+	tag, err := r.db.Exec(ctx, `
+			UPDATE hanchan_players
+			SET final_score = $1, placement = $2
+			WHERE hanchan_id = $3 AND player_id = $4`,
+		hp.FinalScore, hp.Placement, hp.HanchanID, hp.PlayerSeat.PlayerID,
+	)
 	if err != nil {
-		return fmt.Errorf("begin tx: %w", err)
+		return fmt.Errorf("update placement hanchan_player %d: %w", hp.PlayerSeat.PlayerID, err)
 	}
-	defer tx.Rollback(ctx)
-
-	for _, res := range results {
-		tag, err := tx.Exec(ctx, `
-				UPDATE hanchan_players
-				SET final_score = $1, placement = $2
-				WHERE hanchan_id = $3 AND player_id = $4`,
-			res.FinalScore, res.Placement, res.HanchanID, res.PlayerSeat.PlayerID,
-		)
-		if err != nil {
-			return fmt.Errorf("update placement hanchan_player %d: %w", res.PlayerSeat.PlayerID, err)
-		}
-		if tag.RowsAffected() == 0 {
-			return fmt.Errorf("player %d not found in hanchan: %w", res.PlayerSeat.PlayerID, ErrNotFound)
-		}
-	}
-
-	if err := tx.Commit(ctx); err != nil {
-		return fmt.Errorf("commit: %w", err)
+	if tag.RowsAffected() == 0 {
+		return fmt.Errorf("player %d not found in hanchan: %w", hp.PlayerSeat.PlayerID, ErrNotFound)
 	}
 
 	return nil
