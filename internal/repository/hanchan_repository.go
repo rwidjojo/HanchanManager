@@ -8,53 +8,45 @@ import (
 	"HanchanManager/internal/domain"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type HanchanRepository interface {
-	CreateWithPlayers(ctx context.Context, hanchan *domain.Hanchan, seating []domain.PlayerSeating) error
+	Create(ctx context.Context, hanchan *domain.Hanchan) error
 	GetByID(ctx context.Context, id int) (*domain.Hanchan, error)
 	ListByGroup(ctx context.Context, groupID int) ([]*domain.Hanchan, error)
 	AssignPlayer(ctx context.Context, hp *domain.HanchanPlayer) error
 	ListPlayers(ctx context.Context, hanchanID int) ([]*domain.HanchanPlayer, error)
-	Close(ctx context.Context, hanchanID int, results []domain.HanchanPlayer) error
+	Close(ctx context.Context, hanchanID int) error
+	UpdatePlacement(ctx context.Context, results []domain.HanchanPlayer) error
+	WithTx(ctx context.Context, fn func(txRepo HanchanRepository) error) error
+}
+
+type dbExecutor interface {
+	Exec(ctx context.Context, sql string, args ...any) (pgconn.CommandTag, error)
+	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
+	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
 }
 
 type hanchanRepo struct {
-	db *pgxpool.Pool
+	db   *pgxpool.Pool
+	exec dbExecutor
 }
 
 func NewHanchanRepo(db *pgxpool.Pool) HanchanRepository {
-	return &hanchanRepo{db: db}
+	return &hanchanRepo{db: db, exec: db}
 }
 
-func (r *hanchanRepo) CreateWithPlayers(ctx context.Context, hanchan *domain.Hanchan, seating []domain.PlayerSeating) error {
+func (r *hanchanRepo) Create(ctx context.Context, hanchan *domain.Hanchan) error {
 
-	tx, err := r.db.Begin(ctx)
-	if err != nil {
-		return fmt.Errorf("begin tx: %w", err)
-	}
-	defer tx.Rollback(ctx)
-
-	err = tx.QueryRow(ctx,
+	err := r.db.QueryRow(ctx,
 		`INSERT INTO hanchans (group_id, name, date, base_score, uma) VALUES ($1, $2, $3, $4, $5) RETURNING id, created_at`,
 		hanchan.GroupID, hanchan.Name, hanchan.Date, hanchan.BaseScore, hanchan.Uma,
 	).Scan(&hanchan.ID, &hanchan.CreatedAt)
 
 	if err != nil {
 		return fmt.Errorf("create hanchan: %w", err)
-	}
-
-	for _, seat := range seating {
-		query := `INSERT INTO hanchan_players (hanchan_id, player_id, initial_seat) VALUES ($1, $2, $3)`
-		_, err := tx.Exec(ctx, query, hanchan.ID, seat.PlayerID, seat.InitialSeat)
-		if err != nil {
-			return fmt.Errorf("unable to insert hanchan_players %d: %w", seat.PlayerID, err)
-		}
-	}
-
-	if err := tx.Commit(ctx); err != nil {
-		return fmt.Errorf("commit: %w", err)
 	}
 
 	return nil
@@ -103,8 +95,10 @@ func (r *hanchanRepo) ListByGroup(ctx context.Context, groupID int) ([]*domain.H
 
 func (r *hanchanRepo) AssignPlayer(ctx context.Context, hp *domain.HanchanPlayer) error {
 	query := `INSERT INTO hanchan_players (hanchan_id, player_id, initial_seat) VALUES ($1, $2, $3)`
-	_, err := r.db.Exec(ctx, query, hp.HanchanID, hp.PlayerSeat.PlayerID, hp.PlayerSeat.InitialSeat)
-	return err
+	if _, err := r.db.Exec(ctx, query, hp.HanchanID, hp.PlayerSeat.PlayerID, hp.PlayerSeat.InitialSeat); err != nil {
+		return fmt.Errorf("assign player: %w", err)
+	}
+	return nil
 }
 
 func (r *hanchanRepo) ListPlayers(ctx context.Context, hanchanID int) ([]*domain.HanchanPlayer, error) {
@@ -130,33 +124,58 @@ func (r *hanchanRepo) ListPlayers(ctx context.Context, hanchanID int) ([]*domain
 	return players, rows.Err()
 }
 
-func (r *hanchanRepo) Close(ctx context.Context, hanchanID int, results []domain.HanchanPlayer) error {
+func (r *hanchanRepo) Close(ctx context.Context, hanchanID int) error {
+
+	if _, err := r.db.Exec(ctx, `UPDATE hanchans SET status = 'CLOSED' WHERE id = $1`, hanchanID); err != nil {
+		return fmt.Errorf("close hanchan: %w", err)
+	}
+
+	return nil
+}
+
+func (r *hanchanRepo) UpdatePlacement(ctx context.Context, results []domain.HanchanPlayer) error {
+
 	tx, err := r.db.Begin(ctx)
 	if err != nil {
 		return fmt.Errorf("begin tx: %w", err)
 	}
 	defer tx.Rollback(ctx)
 
-	// Write final_score and placement for each player.
-	for _, r := range results {
+	for _, res := range results {
 		tag, err := tx.Exec(ctx, `
 				UPDATE hanchan_players
 				SET final_score = $1, placement = $2
 				WHERE hanchan_id = $3 AND player_id = $4`,
-			r.FinalScore, r.Placement, hanchanID, r.PlayerSeat.PlayerID,
+			res.FinalScore, res.Placement, res.HanchanID, res.PlayerSeat.PlayerID,
 		)
 		if err != nil {
-			return fmt.Errorf("update hanchan_player %d: %w", r.PlayerSeat.PlayerID, err)
+			return fmt.Errorf("update placement hanchan_player %d: %w", res.PlayerSeat.PlayerID, err)
 		}
 		if tag.RowsAffected() == 0 {
-			return fmt.Errorf("player %d not found in hanchan: %w", r.PlayerSeat.PlayerID, ErrNotFound)
+			return fmt.Errorf("player %d not found in hanchan: %w", res.PlayerSeat.PlayerID, ErrNotFound)
 		}
 	}
 
-	// Mark the hanchan as closed.
-	_, err = tx.Exec(ctx, `UPDATE hanchans SET status = 'CLOSED' WHERE id = $1`, hanchanID)
+	if err := tx.Commit(ctx); err != nil {
+		return fmt.Errorf("commit: %w", err)
+	}
+
+	return nil
+}
+
+func (r *hanchanRepo) WithTx(ctx context.Context, fn func(HanchanRepository) error) error {
+	tx, err := r.db.Begin(ctx)
 	if err != nil {
-		return fmt.Errorf("close hanchan: %w", err)
+		return fmt.Errorf("begin tx: %w", err)
+	}
+
+	txRepo := &hanchanRepo{db: r.db, exec: tx}
+
+	if err := fn(txRepo); err != nil {
+		if rbErr := tx.Rollback(ctx); rbErr != nil {
+			return fmt.Errorf("tx error: %w, rollback error: %v", err, rbErr)
+		}
+		return err
 	}
 
 	if err := tx.Commit(ctx); err != nil {

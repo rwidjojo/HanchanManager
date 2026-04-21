@@ -74,8 +74,22 @@ func (s *HanchanService) CreateHanchan(ctx context.Context, input CreateHanchanI
 		BaseScore: hanchanBaseScore,
 	}
 
-	if err := s.hanchanRepo.CreateWithPlayers(ctx, hanchan, input.Seating); err != nil {
-		return nil, fmt.Errorf("create hanchan: %w", err)
+	txErr := s.hanchanRepo.WithTx(ctx, func(txRepo repository.HanchanRepository) error {
+		if err := txRepo.Create(ctx, hanchan); err != nil {
+			return err
+		}
+		for _, seat := range input.Seating {
+			hp := &domain.HanchanPlayer{HanchanID: hanchan.ID, PlayerSeat: seat}
+			if err := txRepo.AssignPlayer(ctx, hp); err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
+
+	if txErr != nil {
+		return nil, txErr
 	}
 
 	return hanchan, nil
